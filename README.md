@@ -11,6 +11,11 @@ Backend API para el sistema de reservas de canchas deportivas Deportiva.
 - **JWT** - Autenticación con tokens
 - **Bcrypt** - Hash de contraseñas
 
+## VIDEO DEL PROYECTO
+
+https://drive.google.com/drive/folders/1zAl9LKaveI0qNmPxGHok1nNebdno3tHe?usp=sharing
+
+
 ## 📋 Requisitos Previos
 
 - Node.js >= 18.x
