@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Deportiva",
+    "slug": "appCancha-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#00A86B"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.appcancha.mobile"
+    },
+    "android": {
+      "package": "com.appcancha.mobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:5000/api"
+    },
+    "plugins": [
+      "expo-web-browser"
+    ],
+    "icon": "./assets/icon.png"
+  }
+}

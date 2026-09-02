@@ -1,0 +1,21 @@
+backend y base de datos: Render o Railway con postgresql
+storage para fotos (Cloudinary/S3)
+
+Super usuario
+📧 Email: admin@deportiva.app
+🔑 Contraseña: admin123456
+👤 Nombre: Admin Sistema
+
+Usuarios creados
+Email	Password	Alias
+martin@test.com	123456	@martincho
+lucas@test.com	123456	@luquitas
+nicolas@test.com	123456	@nico_f
+santiago@test.com	123456	@santi
+
+levanar 
+cd c:\Users\PC\Documents\backCancha
+npm run dev
+
+cd c:\Users\PC\Documents\backCancha\appCancha-mobile
+npx expo start

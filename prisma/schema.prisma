@@ -1,0 +1,716 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id                        String                   @id @default(uuid())
+  email                     String                   @unique
+  password                  String
+  nombre                    String
+  apellido                  String
+  telefono                  String?
+  rol                       UserRole                 @default(JUGADOR)
+  foto                      String?
+  emailVerificado           Boolean                  @default(false)
+  activo                    Boolean                  @default(true)
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
+  alias                     String?
+  ciudad                    String?
+  pais                      String?
+  provincia                 String?
+  mpAccessToken             String?
+  mpConnected               Boolean                  @default(false)
+  mpRefreshToken            String?
+  mpUserId                  String?
+  suscripcionActiva         Boolean                  @default(true)
+  suscripcionFechaFin       DateTime?
+  suscripcionFechaInicio    DateTime?
+  suscripcionNotas          String?
+  canchasPausadasPorAdmin   String[]                 @default([])
+  telefonosExtras           String?
+  pagosReserva              PagoReserva[]
+  bloqueadoPor              Bloqueo[]                @relation("Bloqueado")
+  bloqueos                  Bloqueo[]                @relation("Bloqueador")
+  canchasPropiedad          Cancha[]                 @relation("PropietarioCanchas")
+  comentariosReserva        ComentarioReserva[]
+  invitacionesRecibidas     InvitacionReserva[]      @relation("InvitacionesRecibidas")
+  invitacionesEnviadas      InvitacionReserva[]      @relation("InvitacionesEnviadas")
+  notificacionSettings      NotificacionSettings?
+  notificacionesEnviadas    NotificacionUsuario[]    @relation("NotificacionesEnviadas")
+  notificacionesRecibidas   NotificacionUsuario[]    @relation("NotificacionesRecibidas")
+  participacionesInvitacion ParticipanteInvitacion[]
+  resenas                   Resena[]
+  reservas                  Reserva[]
+  sancionesRecibidas        Sancion[]                @relation("SancionesRecibidas")
+  sancionesAplicadas        Sancion[]                @relation("SancionesAplicadas")
+  seguidores                Seguimiento[]            @relation("Seguido")
+  seguimientos              Seguimiento[]            @relation("Seguidor")
+  solicitudesEnviadas       SolicitudInvitacion[]    @relation("SolicitudesEnviadas")
+  // --- Módulo Profesores y Clases ---
+  esProfesor                 Boolean                  @default(false)
+  perfilProfesor             PerfilProfesor?
+  vinculosComoProfesor       VinculoProfesorEstablecimiento[] @relation("ProfesorVinculos")
+  vinculosComoEstablecimiento VinculoProfesorEstablecimiento[] @relation("EstablecimientoVinculos")
+  clasesComoProfesor         Clase[]
+  reservasClase              ReservaClase[]
+  listaEspera                ListaEspera[]
+  resenasClaseEscritas       ResenaClase[]            @relation("ResenasClaseEscritas")
+  resenasClaseRecibidas      ResenaClase[]            @relation("ResenasClaseRecibidas")
+
+  @@map("usuarios")
+}
+
+model Seguimiento {
+  id         String   @id @default(uuid())
+  seguidorId String
+  seguidoId  String
+  createdAt  DateTime @default(now())
+  seguido    Usuario  @relation("Seguido", fields: [seguidoId], references: [id], onDelete: Cascade)
+  seguidor   Usuario  @relation("Seguidor", fields: [seguidorId], references: [id], onDelete: Cascade)
+
+  @@unique([seguidorId, seguidoId])
+  @@index([seguidorId])
+  @@index([seguidoId])
+  @@map("seguimientos")
+}
+
+model Bloqueo {
+  id           String   @id @default(uuid())
+  bloqueadorId String
+  bloqueadoId  String
+  createdAt    DateTime @default(now())
+  bloqueado    Usuario  @relation("Bloqueado", fields: [bloqueadoId], references: [id], onDelete: Cascade)
+  bloqueador   Usuario  @relation("Bloqueador", fields: [bloqueadorId], references: [id], onDelete: Cascade)
+
+  @@unique([bloqueadorId, bloqueadoId])
+  @@index([bloqueadorId])
+  @@index([bloqueadoId])
+  @@map("bloqueos")
+}
+
+model PasswordResetCode {
+  id        String   @id @default(uuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([code])
+  @@map("password_reset_codes")
+}
+
+model Cancha {
+  id                      String              @id @default(uuid())
+  nombre                  String
+  descripcion             String
+  deporte                 DeporteType
+  direccion               String
+  ciudad                  String
+  provincia               String
+  codigoPostal            String?
+  latitud                 Float?
+  longitud                Float?
+  capacidadJugadores      Int
+  techada                 Boolean             @default(false)
+  superficieTipo          String
+  precioPorHora           Float
+  vestuarios              Boolean             @default(false)
+  estacionamiento         Boolean             @default(false)
+  iluminacion             Boolean             @default(false)
+  parrilla                Boolean             @default(false)
+  buffet                  Boolean             @default(false)
+  duchas                  Boolean             @default(false)
+  imagenes                String[]
+  imagenPrincipal         String?
+  activa                  Boolean             @default(true)
+  verificada              Boolean             @default(false)
+  propietarioId           String
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  horasLimiteCancelacion  Int                 @default(24)
+  ayudaMedica             Boolean             @default(false)
+  camaras                 Boolean             @default(false)
+  colegios                Boolean             @default(false)
+  cumpleanos              Boolean             @default(false)
+  escuelita               Boolean             @default(false)
+  gimnasio                Boolean             @default(false)
+  gradas                  Boolean             @default(false)
+  torneos                 Boolean             @default(false)
+  tribuna                 Boolean             @default(false)
+  wifi                    Boolean             @default(false)
+  serviciosPersonalizados String[]            @default([])
+  telefonos               String?
+  propietario             Usuario             @relation("PropietarioCanchas", fields: [propietarioId], references: [id])
+  diasEspeciales          DiaEspecial[]
+  horarios                HorarioDisponible[]
+  resenas                 Resena[]
+  reservas                Reserva[]
+  sanciones               Sancion[]
+  clases                  Clase[]
+
+  @@map("canchas")
+}
+
+model HorarioDisponible {
+  id         String   @id @default(uuid())
+  canchaId   String
+  diaSemana  Int
+  horaInicio String
+  horaFin    String
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  cancha     Cancha   @relation(fields: [canchaId], references: [id], onDelete: Cascade)
+
+  @@map("horarios_disponibles")
+}
+
+model DiaEspecial {
+  id           String   @id @default(uuid())
+  canchaId     String
+  fecha        DateTime
+  tipo         String
+  horaApertura String?
+  horaCierre   String?
+  motivo       String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cancha       Cancha   @relation(fields: [canchaId], references: [id], onDelete: Cascade)
+
+  @@map("dias_especiales")
+}
+
+model NotificacionSettings {
+  id                    String   @id @default(uuid())
+  usuarioId             String   @unique
+  notificacionesActivas Boolean  @default(true)
+  usuariosBloqueados    String[] @default([])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  usuario               Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("notificacion_settings")
+}
+
+model NotificacionUsuario {
+  id                String   @id @default(uuid())
+  usuarioReceptorId String
+  usuarioEmisorId   String?
+  titulo            String
+  mensaje           String
+  tipo              String
+  leida             Boolean  @default(false)
+  createdAt         DateTime @default(now())
+  datos             String?
+  usuarioEmisor     Usuario? @relation("NotificacionesEnviadas", fields: [usuarioEmisorId], references: [id])
+  usuarioReceptor   Usuario  @relation("NotificacionesRecibidas", fields: [usuarioReceptorId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioReceptorId])
+  @@index([usuarioEmisorId])
+  @@map("notificaciones_usuarios")
+}
+
+model Reserva {
+  id                           String              @id @default(uuid())
+  usuarioId                    String
+  canchaId                     String
+  fecha                        DateTime
+  horaInicio                   String
+  horaFin                      String
+  duracionHoras                Float
+  estado                       ReservaEstado       @default(PENDIENTE)
+  precioTotal                  Float
+  pagado                       Boolean             @default(false)
+  metodoPago                   String?
+  notas                        String?
+  canceladaPor                 String?
+  motivoCancelacion            String?
+  createdAt                    DateTime            @default(now())
+  updatedAt                    DateTime            @updatedAt
+  horasLimitePago              Int                 @default(2)
+  minimoPorcentajeConfirmacion Int                 @default(100)
+  montoPagadoTotal             Float               @default(0)
+  cantidadJugadores            Int?
+  pagos                        PagoReserva[]
+  comentarios                  ComentarioReserva[]
+  invitaciones                 InvitacionReserva[]
+  cancha                       Cancha              @relation(fields: [canchaId], references: [id])
+  usuario                      Usuario             @relation(fields: [usuarioId], references: [id])
+
+  @@map("reservas")
+}
+
+model ComentarioReserva {
+  id        String   @id @default(uuid())
+  reservaId String
+  usuarioId String
+  mensaje   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  reserva   Reserva  @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@map("comentarios_reserva")
+}
+
+model PagoReserva {
+  id             String            @id @default(uuid())
+  reservaId      String
+  usuarioId      String
+  monto          Float
+  estado         PagoReservaEstado @default(PENDIENTE)
+  mpPreferenceId String?
+  mpPaymentId    String?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  reserva        Reserva           @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  usuario        Usuario           @relation(fields: [usuarioId], references: [id])
+
+  @@index([reservaId])
+  @@index([usuarioId])
+  @@index([mpPaymentId])
+}
+
+model Resena {
+  id           String   @id @default(uuid())
+  usuarioId    String
+  canchaId     String
+  calificacion Int
+  comentario   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  cancha       Cancha   @relation(fields: [canchaId], references: [id], onDelete: Cascade)
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@unique([usuarioId, canchaId])
+  @@map("resenas")
+}
+
+model InvitacionReserva {
+  id                     String                   @id @default(uuid())
+  reservaId              String
+  invitadorId            String
+  invitadoId             String?
+  esPublica              Boolean                  @default(false)
+  generoRequerido        GeneroInvitacion         @default(INDISTINTO)
+  cuposDisponibles       Int                      @default(1)
+  cuposOcupados          Int                      @default(0)
+  estado                 InvitacionEstado         @default(PENDIENTE)
+  mensaje                String?
+  createdAt              DateTime                 @default(now())
+  updatedAt              DateTime                 @updatedAt
+  horasLimiteCancelacion Int                      @default(24)
+  invitado               Usuario?                 @relation("InvitacionesRecibidas", fields: [invitadoId], references: [id])
+  invitador              Usuario                  @relation("InvitacionesEnviadas", fields: [invitadorId], references: [id])
+  reserva                Reserva                  @relation(fields: [reservaId], references: [id], onDelete: Cascade)
+  participantes          ParticipanteInvitacion[]
+  solicitudes            SolicitudInvitacion[]
+
+  @@index([reservaId])
+  @@index([invitadorId])
+  @@index([invitadoId])
+  @@index([esPublica, estado])
+  @@map("invitaciones_reserva")
+}
+
+model ParticipanteInvitacion {
+  id           String            @id @default(uuid())
+  invitacionId String
+  usuarioId    String
+  createdAt    DateTime          @default(now())
+  invitacion   InvitacionReserva @relation(fields: [invitacionId], references: [id], onDelete: Cascade)
+  usuario      Usuario           @relation(fields: [usuarioId], references: [id])
+
+  @@unique([invitacionId, usuarioId])
+  @@map("participantes_invitacion")
+}
+
+model SolicitudInvitacion {
+  id           String            @id @default(uuid())
+  invitacionId String
+  usuarioId    String
+  estado       SolicitudEstado   @default(PENDIENTE)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  invitacion   InvitacionReserva @relation(fields: [invitacionId], references: [id], onDelete: Cascade)
+  usuario      Usuario           @relation("SolicitudesEnviadas", fields: [usuarioId], references: [id])
+
+  @@unique([invitacionId, usuarioId])
+  @@index([invitacionId])
+  @@index([usuarioId])
+  @@map("solicitudes_invitacion")
+}
+
+model Sancion {
+  id            String      @id @default(uuid())
+  propietarioId String
+  jugadorId     String
+  canchaId      String?
+  tipo          TipoSancion
+  motivo        String
+  activa        Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  cancha        Cancha?     @relation(fields: [canchaId], references: [id], onDelete: Cascade)
+  jugador       Usuario     @relation("SancionesRecibidas", fields: [jugadorId], references: [id], onDelete: Cascade)
+  propietario   Usuario     @relation("SancionesAplicadas", fields: [propietarioId], references: [id], onDelete: Cascade)
+
+  @@unique([propietarioId, jugadorId, canchaId])
+  @@index([propietarioId])
+  @@index([jugadorId])
+  @@index([canchaId])
+  @@map("sanciones")
+}
+
+enum UserRole {
+  JUGADOR
+  PROPIETARIO
+  ADMIN
+}
+
+enum ReservaEstado {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+enum PagoReservaEstado {
+  PENDIENTE
+  PAGADO
+  REEMBOLSADO
+}
+
+enum InvitacionEstado {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+  EXPIRADA
+}
+
+enum GeneroInvitacion {
+  MASCULINO
+  FEMENINO
+  INDISTINTO
+}
+
+enum SolicitudEstado {
+  PENDIENTE
+  ACEPTADA
+  RECHAZADA
+}
+
+enum TipoSancion {
+  BANEADO
+  ADVERTIDO
+  OBSERVADO
+}
+
+enum DeporteType {
+  FUTBOL_4
+  FUTBOL_5
+  FUTBOL_6
+  FUTBOL_7
+  FUTBOL_8
+  FUTBOL_9
+  FUTBOL_11
+  PADEL
+  FUTSAL
+  VOLEY
+  TENIS
+  BASQUET
+  OTRO
+  VOLEY_PLAYA
+  NEWCOM
+}
+
+// =============================================
+// MÓDULO PROFESORES Y CLASES
+// =============================================
+
+// --- Nuevos Enums ---
+
+enum TipoVinculo {
+  STAFF
+  EXTERNO
+}
+
+enum EstadoVinculo {
+  PENDIENTE
+  ACTIVO
+  RECHAZADO
+  INACTIVO
+}
+
+enum MetodoPagoEspacio {
+  APP
+  EXTERNO
+}
+
+enum TipoClase {
+  INDIVIDUAL
+  GRUPAL
+  SUSCRIPCION
+}
+
+enum ModalidadPago {
+  POR_CLASE
+  MENSUAL
+  PAQUETE
+}
+
+enum NivelClase {
+  PRINCIPIANTE
+  INTERMEDIO
+  AVANZADO
+}
+
+enum EstadoClase {
+  BORRADOR
+  PENDIENTE_APROBACION
+  ACTIVA
+  PAUSADA
+  CANCELADA
+}
+
+enum EstadoSesion {
+  PROGRAMADA
+  EN_CURSO
+  COMPLETADA
+  CANCELADA
+}
+
+enum EstadoReservaClase {
+  PENDIENTE
+  CONFIRMADA
+  CANCELADA
+  COMPLETADA
+}
+
+enum EstadoListaEspera {
+  ESPERANDO
+  OFERTADO
+  CONFIRMADO
+  EXPIRADO
+}
+
+// --- Nuevos Modelos ---
+
+// Extensión del usuario cuando esProfesor = true.
+// Separado de Usuario para no contaminar el modelo base con campos
+// que solo aplican a profesores. Relación 1:1 vía usuarioId unique.
+model PerfilProfesor {
+  id                   String        @id @default(uuid())
+  usuarioId            String        @unique
+  deportes             DeporteType[]
+  descripcion          String?       @db.VarChar(500)
+  anosExperiencia      Int           @default(0)
+  certificaciones      String[]      @default([])
+  niveles              NivelClase[]
+  calificacionPromedio Float         @default(0)
+  cantidadResenas      Int           @default(0)
+  verificado           Boolean       @default(false)
+  verificadoPorId      String?
+  verificadoAt         DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  usuario              Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@map("perfiles_profesor")
+}
+
+// Relación entre un profesor y un establecimiento (propietario).
+// El vínculo es con el propietario (no con una cancha específica) porque
+// la relación laboral es con el club/empresa, no con un espacio puntual.
+// Al crear una Clase, el profesor elige qué cancha del establecimiento usar.
+model VinculoProfesorEstablecimiento {
+  id                    String            @id @default(uuid())
+  profesorId            String
+  establecimientoId     String
+  tipoVinculo           TipoVinculo
+  aprobacionAutomatica  Boolean           @default(false)
+  metodoPagoEspacio     MetodoPagoEspacio @default(EXTERNO)
+  comisionClub          Float?
+  estado                EstadoVinculo     @default(PENDIENTE)
+  motivoRechazo         String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  profesor              Usuario           @relation("ProfesorVinculos", fields: [profesorId], references: [id], onDelete: Cascade)
+  establecimiento       Usuario           @relation("EstablecimientoVinculos", fields: [establecimientoId], references: [id], onDelete: Cascade)
+
+  @@unique([profesorId, establecimientoId])
+  @@index([profesorId])
+  @@index([establecimientoId])
+  @@map("vinculos_profesor_establecimiento")
+}
+
+// El servicio que ofrece un profesor. Equivalente a lo que es Cancha para un propietario.
+// canchaId es nullable: si es null, la clase no tiene espacio físico fijo (ej: clase al aire libre).
+// precioTotal = precioProfesor + precioEspacio (cuando metodoPagoEspacio = APP en el vínculo).
+// precioDinamicoConfig es JSON flexible para definir umbrales y porcentajes de precio dinámico.
+model Clase {
+  id                      String        @id @default(uuid())
+  profesorId              String
+  canchaId                String?
+  nombre                  String
+  deporte                 DeporteType
+  tipoClase               TipoClase
+  modalidadPago           ModalidadPago @default(POR_CLASE)
+  cantidadClasesPaquete   Int?
+  descripcion             String?       @db.VarChar(1000)
+  requisitos              String?
+  nivel                   NivelClase    @default(PRINCIPIANTE)
+  precioProfesor          Float
+  precioEspacio           Float?
+  precioTotal             Float
+  cupoMaximo              Int?
+  precioDinamicoActivo    Boolean       @default(false)
+  precioDinamicoConfig    Json?
+  requiereAprobacionClub  Boolean       @default(false)
+  estado                  EstadoClase   @default(BORRADOR)
+  motivoRechazo           String?
+  horasLimiteCancelacion  Int           @default(24)
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+  profesor                Usuario       @relation(fields: [profesorId], references: [id], onDelete: Cascade)
+  cancha                  Cancha?       @relation(fields: [canchaId], references: [id], onDelete: SetNull)
+  horarios                HorarioClase[]
+  sesiones                SesionClase[]
+
+  @@index([profesorId])
+  @@index([canchaId])
+  @@index([deporte])
+  @@index([estado])
+  @@map("clases")
+}
+
+// Horarios recurrentes de una clase. Separado de HorarioDisponible (canchas) porque:
+// 1. Las clases tienen periodicidad diferente (una clase puede ser "solo martes 18hs")
+// 2. Los horarios de clase no son ventanas de disponibilidad sino slots concretos
+// 3. Evita contaminar la tabla de horarios de canchas con datos de clases
+model HorarioClase {
+  id         String   @id @default(uuid())
+  claseId    String
+  diaSemana  Int
+  horaInicio String
+  horaFin    String
+  activo     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  clase      Clase    @relation(fields: [claseId], references: [id], onDelete: Cascade)
+
+  @@index([claseId])
+  @@map("horarios_clase")
+}
+
+// Instancia concreta de una clase en una fecha/hora específica.
+// cuposDisponibles se almacena (no se calcula) por performance:
+// se decrementa al reservar y se incrementa al cancelar, todo dentro
+// de transacciones Prisma para evitar race conditions.
+model SesionClase {
+  id                String             @id @default(uuid())
+  claseId           String
+  fecha             DateTime
+  horaInicio        String
+  horaFin           String
+  estado            EstadoSesion       @default(PROGRAMADA)
+  cuposDisponibles  Int
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  clase             Clase              @relation(fields: [claseId], references: [id], onDelete: Cascade)
+  reservas          ReservaClase[]
+  listaEspera       ListaEspera[]
+
+  @@index([claseId])
+  @@index([fecha])
+  @@index([estado])
+  @@map("sesiones_clase")
+}
+
+// Reserva de un participante a una sesión de clase.
+// Separada de Reserva (canchas) porque los flujos son independientes:
+// - Reserva de cancha: pago completo del espacio, invitaciones, etc.
+// - ReservaClase: pago con split (profesor/club/app), lista de espera, etc.
+// pagoLiberado indica si el dinero retenido ya fue transferido al profesor/club
+// tras completarse la sesión.
+model ReservaClase {
+  id              String             @id @default(uuid())
+  sesionId        String
+  participanteId  String
+  estado          EstadoReservaClase @default(PENDIENTE)
+  montoPagado     Float              @default(0)
+  splitProfesor   Float              @default(0)
+  splitClub       Float?
+  splitApp        Float              @default(0)
+  metodoPago      String?
+  mpPreferenceId  String?
+  mpPaymentId     String?
+  pagoLiberado    Boolean            @default(false)
+  pagoLiberadoAt  DateTime?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  sesion          SesionClase        @relation(fields: [sesionId], references: [id], onDelete: Cascade)
+  participante    Usuario            @relation(fields: [participanteId], references: [id])
+  resena          ResenaClase?
+
+  @@unique([sesionId, participanteId])
+  @@index([sesionId])
+  @@index([participanteId])
+  @@index([mpPaymentId])
+  @@map("reservas_clase")
+}
+
+// Cola de espera cuando una clase grupal llega a cupo máximo.
+// posicion es incremental por sesión. Cuando se libera un cupo:
+// 1. Se busca el primer ESPERANDO por posicion ASC
+// 2. Se cambia a OFERTADO y se setea expiraEn (ahora + 30 min)
+// 3. Se notifica al usuario via NotificacionUsuario
+// 4. Si no confirma antes de expiraEn, pasa a EXPIRADO y se oferta al siguiente
+model ListaEspera {
+  id         String             @id @default(uuid())
+  sesionId   String
+  usuarioId  String
+  posicion   Int
+  notificado Boolean            @default(false)
+  expiraEn   DateTime?
+  estado     EstadoListaEspera  @default(ESPERANDO)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  sesion     SesionClase        @relation(fields: [sesionId], references: [id], onDelete: Cascade)
+  usuario    Usuario            @relation(fields: [usuarioId], references: [id])
+
+  @@unique([sesionId, usuarioId])
+  @@index([sesionId, estado])
+  @@map("lista_espera")
+}
+
+// Calificación de un participante a una clase/profesor.
+// Separada de Resena (canchas) porque las dimensiones de evaluación son distintas:
+// - Resena de cancha: evalúa el espacio físico
+// - ResenaClase: evalúa al profesor, la enseñanza, la clase
+// Al crear una reseña se recalcula calificacionPromedio y cantidadResenas en PerfilProfesor.
+model ResenaClase {
+  id              String       @id @default(uuid())
+  reservaClaseId  String       @unique
+  participanteId  String
+  profesorId      String
+  calificacion    Int
+  comentario      String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  reservaClase    ReservaClase @relation(fields: [reservaClaseId], references: [id], onDelete: Cascade)
+  participante    Usuario      @relation("ResenasClaseEscritas", fields: [participanteId], references: [id])
+  profesor        Usuario      @relation("ResenasClaseRecibidas", fields: [profesorId], references: [id])
+
+  @@unique([reservaClaseId, participanteId])
+  @@index([profesorId])
+  @@map("resenas_clase")
+}
